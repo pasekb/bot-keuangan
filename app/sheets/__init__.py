@@ -1,0 +1,1 @@
+"""Lapisan akses Google Sheets."""

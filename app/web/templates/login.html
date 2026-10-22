@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Masuk · Bot Keuangan{% endblock %}
+{% block content %}
+<section class="login-card">
+  <h1>💰 Bot Keuangan</h1>
+  <p class="muted">Masukkan password dashboard.</p>
+  <form method="post" action="/login" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>
+      Password
+      <input type="password" name="password" autocomplete="current-password" required autofocus>
+    </label>
+    <button type="submit" class="btn primary">Masuk</button>
+  </form>
+</section>
+{% endblock %}

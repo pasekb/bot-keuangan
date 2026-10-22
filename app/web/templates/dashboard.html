@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Ringkasan · Bot Keuangan{% endblock %}
+{% block content %}
+<section class="month-nav">
+  <a class="btn ghost" href="/?bulan={{ prev_month }}">‹ Sebelumnya</a>
+  <div class="month-title">
+    <h1>{{ month_label }}</h1>
+    <p class="muted">{{ summary.count }} transaksi</p>
+  </div>
+  {% if is_current_month %}
+    <span class="btn ghost disabled">Berikutnya ›</span>
+  {% else %}
+    <a class="btn ghost" href="/?bulan={{ next_month }}">Berikutnya ›</a>
+  {% endif %}
+</section>
+
+<section class="stats">
+  <article class="stat income">
+    <span class="stat-label">Pemasukan</span>
+    <strong>{{ summary.income | rupiah }}</strong>
+  </article>
+  <article class="stat expense">
+    <span class="stat-label">Pengeluaran</span>
+    <strong>{{ summary.expense | rupiah }}</strong>
+  </article>
+  <article class="stat {{ 'income' if summary.net >= 0 else 'expense' }}">
+    <span class="stat-label">Selisih bulan ini</span>
+    <strong>{{ summary.net | rupiah }}</strong>
+  </article>
+  <article class="stat neutral">
+    <span class="stat-label">Saldo total</span>
+    <strong>{{ summary.balance | rupiah }}</strong>
+  </article>
+</section>
+
+<section class="grid two">
+  <article class="card">
+    <h2>Pengeluaran per kategori</h2>
+    {% if slices %}
+      <div class="donut-row">
+        <div class="donut" style="background: {{ donut }};">
+          <div class="donut-hole">
+            <strong>{{ summary.expense | rupiah }}</strong>
+            <small>total</small>
+          </div>
+        </div>
+        <ul class="legend">
+          {% for item in slices %}
+          <li>
+            <span class="dot" style="background: {{ item.color }};"></span>
+            <span class="legend-name">{{ item.emoji }} {{ item.name }}</span>
+            <span class="legend-value">{{ item.total | rupiah }}</span>
+            <span class="legend-share">{{ (item.share * 100) | round(1) }}%</span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% else %}
+      <p class="empty">Belum ada pengeluaran bulan ini.</p>
+    {% endif %}
+  </article>
+
+  <article class="card">
+    <h2>Tren pengeluaran harian</h2>
+    {% if summary.expense > 0 %}
+      <div class="bars" role="img" aria-label="Grafik pengeluaran harian">
+        {% for point in daily %}
+        <div class="bar-col" title="{{ point.date.day }}: {{ point.total | rupiah }}">
+          <div class="bar" style="height: {{ point.height }}%;"></div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="bars-axis"><span>1</span><span>{{ daily | length }}</span></div>
+    {% else %}
+      <p class="empty">Belum ada data untuk digambarkan.</p>
+    {% endif %}
+  </article>
+</section>
+
+<section class="card">
+  <div class="card-head">
+    <h2>Transaksi terbaru</h2>
+    <a class="btn ghost" href="/transaksi">Lihat semua</a>
+  </div>
+  {% if recent_txs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Tanggal</th><th>Kategori</th><th>Catatan</th><th class="num">Nominal</th></tr>
+      </thead>
+      <tbody>
+        {% for tx in recent_txs %}
+        <tr>
+          <td class="nowrap">{{ tx.date | tanggal }}</td>
+          <td>
+            <span class="badge {{ tx.type.value }}">{{ emoji_map.get(tx.category, '📦') }} {{ tx.category }}</span>
+          </td>
+          <td>{{ tx.note or '—' }}</td>
+          <td class="num {{ 'income' if tx.type.value == 'pemasukan' else 'expense' }}">
+            {{ '+' if tx.type.value == 'pemasukan' else '−' }}{{ tx.amount | rupiah }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Belum ada transaksi. Kirim pesan ke bot untuk mulai mencatat.</p>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+services:
+  bot:
+    build: .
+    image: bot-keuangan:latest
+    container_name: bot-keuangan
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./credentials:/app/credentials:ro
+    ports:
+      - "8000:8000"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

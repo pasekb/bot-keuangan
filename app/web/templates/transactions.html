@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Transaksi · Bot Keuangan{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Transaksi</h1>
+    <p class="muted">{{ total }} transaksi ditemukan</p>
+  </div>
+  <a class="btn ghost" href="/export.csv?{{ base_query }}">⬇ Ekspor CSV</a>
+</section>
+
+<section class="card">
+  <form method="get" action="/transaksi" class="filters">
+    <label>
+      Bulan
+      <input type="month" name="bulan" value="{{ month_value }}">
+    </label>
+    <label>
+      Tipe
+      <select name="tipe">
+        <option value="" {% if not tipe %}selected{% endif %}>Semua</option>
+        <option value="pengeluaran" {% if tipe == 'pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+        <option value="pemasukan" {% if tipe == 'pemasukan' %}selected{% endif %}>Pemasukan</option>
+      </select>
+    </label>
+    <label>
+      Kategori
+      <select name="kategori">
+        <option value="">Semua</option>
+        {% for name in category_names %}
+        <option value="{{ name }}" {% if kategori == name %}selected{% endif %}>{{ name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="grow">
+      Cari
+      <input type="search" name="q" value="{{ q }}" placeholder="catatan atau kategori">
+    </label>
+    <div class="filter-actions">
+      <button type="submit" class="btn primary">Terapkan</button>
+      <a class="btn ghost" href="/transaksi">Reset</a>
+    </div>
+  </form>
+  <p class="chips">
+    <span class="chip income">Masuk: {{ filtered_income | rupiah }}</span>
+    <span class="chip expense">Keluar: {{ filtered_expense | rupiah }}</span>
+    <span class="chip neutral">Selisih: {{ (filtered_income - filtered_expense) | rupiah }}</span>
+  </p>
+</section>
+
+<details class="card add-card">
+  <summary>+ Tambah transaksi manual</summary>
+  <form method="post" action="/transaksi" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>
+      Tipe
+      <select name="tipe" data-type-select required>
+        <option value="pengeluaran">Pengeluaran</option>
+        <option value="pemasukan">Pemasukan</option>
+      </select>
+    </label>
+    <label>
+      Tanggal
+      <input type="date" name="tanggal" value="{{ today_iso }}" required>
+    </label>
+    <label>
+      Nominal
+      <input type="text" name="nominal" inputmode="numeric" placeholder="25000" required>
+    </label>
+    <label>
+      Kategori
+      <select name="kategori" data-category-select required>
+        <option value="">Pilih kategori…</option>
+        <optgroup label="Pengeluaran">
+          {% for cat in categories if cat.type.value == 'pengeluaran' %}
+          <option value="{{ cat.name }}" data-type="pengeluaran">{{ cat.emoji }} {{ cat.name }}</option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Pemasukan">
+          {% for cat in categories if cat.type.value == 'pemasukan' %}
+          <option value="{{ cat.name }}" data-type="pemasukan">{{ cat.emoji }} {{ cat.name }}</option>
+          {% endfor %}
+        </optgroup>
+      </select>
+    </label>
+    <label>
+      Akun
+      <input type="text" name="akun" placeholder="Cash" maxlength="40">
+    </label>
+    <label class="span-2">
+      Catatan
+      <input type="text" name="catatan" maxlength="200" placeholder="makan siang">
+    </label>
+    <div class="span-2">
+      <button type="submit" class="btn primary">Simpan transaksi</button>
+    </div>
+  </form>
+</details>
+
+<section class="card">
+  {% if items %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Tanggal</th><th>Kategori</th><th>Catatan</th><th>Akun</th>
+          <th class="num">Nominal</th><th>Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in items %}
+        <tr>
+          <td class="nowrap">{{ tx.date | tanggal }}</td>
+          <td><span class="badge {{ tx.type.value }}">{{ tx.category }}</span></td>
+          <td>{{ tx.note or '—' }}</td>
+          <td class="nowrap">{{ tx.account }}</td>
+          <td class="num {{ 'income' if tx.type.value == 'pemasukan' else 'expense' }}">
+            {{ '+' if tx.type.value == 'pemasukan' else '−' }}{{ tx.amount | rupiah }}
+          </td>
+          <td class="actions">
+            <a class="btn tiny ghost" href="/transaksi/{{ tx.id }}/edit">Edit</a>
+            <form method="post" action="/transaksi/{{ tx.id }}/hapus" data-confirm="Hapus transaksi ini?">
+              <input type="hidden" name="csrf_token" value="{{ csrf }}">
+              <button type="submit" class="btn tiny danger">Hapus</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% if pages > 1 %}
+  {% set qs = (base_query + '&') if base_query else '' %}
+  <nav class="pagination">
+    {% if page > 1 %}
+      <a class="btn ghost" href="/transaksi?{{ qs }}page={{ page - 1 }}">‹ Sebelumnya</a>
+    {% else %}
+      <span class="btn ghost disabled">‹ Sebelumnya</span>
+    {% endif %}
+    <span class="muted">Halaman {{ page }} dari {{ pages }}</span>
+    {% if page < pages %}
+      <a class="btn ghost" href="/transaksi?{{ qs }}page={{ page + 1 }}">Berikutnya ›</a>
+    {% else %}
+      <span class="btn ghost disabled">Berikutnya ›</span>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <p class="empty">Tidak ada transaksi pada filter ini.</p>
+  {% endif %}
+</section>
+{% endblock %}

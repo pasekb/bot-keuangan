@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Edit transaksi · Bot Keuangan{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div>
+    <h1>Edit transaksi</h1>
+    <p class="muted">ID {{ transaction.id }}</p>
+  </div>
+  <a class="btn ghost" href="/transaksi">Kembali</a>
+</section>
+
+<section class="card">
+  <form method="post" action="/transaksi/{{ transaction.id }}/edit" class="form-grid">
+    <input type="hidden" name="csrf_token" value="{{ csrf }}">
+    <label>
+      Tipe
+      <select name="tipe" data-type-select required>
+        <option value="pengeluaran" {% if transaction.type.value == 'pengeluaran' %}selected{% endif %}>Pengeluaran</option>
+        <option value="pemasukan" {% if transaction.type.value == 'pemasukan' %}selected{% endif %}>Pemasukan</option>
+      </select>
+    </label>
+    <label>
+      Tanggal
+      <input type="date" name="tanggal" value="{{ transaction.date.isoformat() }}" required>
+    </label>
+    <label>
+      Nominal
+      <input type="text" name="nominal" inputmode="numeric" value="{{ transaction.amount }}" required>
+    </label>
+    <label>
+      Kategori
+      <select name="kategori" data-category-select required>
+        <option value="">Pilih kategori…</option>
+        <optgroup label="Pengeluaran">
+          {% for cat in categories if cat.type.value == 'pengeluaran' %}
+          <option value="{{ cat.name }}" data-type="pengeluaran"
+            {% if cat.name == transaction.category and transaction.type.value == 'pengeluaran' %}selected{% endif %}>
+            {{ cat.emoji }} {{ cat.name }}
+          </option>
+          {% endfor %}
+        </optgroup>
+        <optgroup label="Pemasukan">
+          {% for cat in categories if cat.type.value == 'pemasukan' %}
+          <option value="{{ cat.name }}" data-type="pemasukan"
+            {% if cat.name == transaction.category and transaction.type.value == 'pemasukan' %}selected{% endif %}>
+            {{ cat.emoji }} {{ cat.name }}
+          </option>
+          {% endfor %}
+        </optgroup>
+      </select>
+    </label>
+    <label>
+      Akun
+      <input type="text" name="akun" value="{{ transaction.account }}" maxlength="40">
+    </label>
+    <label class="span-2">
+      Catatan
+      <input type="text" name="catatan" value="{{ transaction.note }}" maxlength="200">
+    </label>
+    <div class="span-2 actions-row">
+      <button type="submit" class="btn primary">Simpan perubahan</button>
+      <a class="btn ghost" href="/transaksi">Batal</a>
+    </div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+[Unit]
+Description=Bot Keuangan (Telegram bot + dashboard)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/bot_keuangan
+ExecStart=/usr/bin/docker compose up -d --build
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose restart
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

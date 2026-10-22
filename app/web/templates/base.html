@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}Bot Keuangan{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+{% if show_nav %}
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/">💰 Bot Keuangan</a>
+    <nav class="nav">
+      <a href="/" class="{% if active == 'dashboard' %}active{% endif %}">Ringkasan</a>
+      <a href="/transaksi" class="{% if active == 'transaksi' %}active{% endif %}">Transaksi</a>
+      <form method="post" action="/logout" class="logout-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf }}">
+        <button type="submit" class="btn-link">Keluar</button>
+      </form>
+    </nav>
+  </div>
+</header>
+{% endif %}
+
+<main class="wrap">
+  {% if error %}<div class="alert">⚠️ {{ error }}</div>{% endif %}
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="foot">Data tersimpan di Google Sheets · v{{ version }} · {{ year }}</footer>
+</body>
+</html>
